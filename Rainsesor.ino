@@ -1,90 +1,117 @@
-//Author Nadhif Fauzil A
-//basic Rain Sensor
-//Using I2C LCD Analog Pin = SDA A4 SCL A5
-//Servo Pin = 7
-//Infrared Obsctacle pin = 2
-//Rain Sensor Pin = 8
-//Test Mode Pin = 3
-//LED Green = 9
-//LED Red = 6
-
-
-#include <Servo.h>
+#include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
- #include <Wire.h> 
-LiquidCrystal_I2C lcd(0x20, 16, 2);
-Servo myservo;
-int rainPin = 8;
-int ir = 2;
-int irbatas;
-int testsr;
-int tingkathujan;
-int pos = 0;  
-int testservo = 3;  
 
-void setup() {
-  lcd.begin(16, 2);
-  lcd.setCursor(3,0);
-  lcd.print("TURNING ON");
-  myservo.attach(7);
-  pinMode(rainPin, INPUT);
-  pinMode(6, OUTPUT);
-  pinMode(9, OUTPUT);
+//AUTO CLOTHESLINE PROGRAM FOR ARDUINO
+//BY ARABIS GROUP REV 3
+//FINAL PROJECT KOMUNIKASI DATA SEMESTER 2
+
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); 
+//PIN 
+#define rainsensor 10
+#define irsensor1 8
+#define irsensor2 9
+#define ledred 2
+#define ledyellow 3
+#define ledgreen 4
+#define in1 6
+#define in2 7
+int statuscuaca;
+int irstatus1;
+int irstatus2;
+
+void setup()
+{
+	// INISIALISASI
+	lcd.begin();
+	lcd.backlight();
+  lcd.setCursor(0,0);
+	lcd.print("AUTO CLOTHESLINE ");
+  lcd.setCursor(2,1);
+  lcd.print("ARABIS GROUP");
+  pinMode(ledred, OUTPUT);
+  pinMode(ledyellow, OUTPUT);
+  pinMode(ledgreen, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(rainsensor, INPUT);
+  pinMode(irsensor1, INPUT);
+  pinMode(irsensor2, INPUT);
   Serial.begin(9600);
-}
-void loop() {
-testsr = digitalRead(testservo);
-if (testsr == HIGH){
-  digitalWrite(6, HIGH);
- digitalWrite(9, HIGH);
+  delay(1000);
   lcd.clear();
-lcd.setCursor(4,0);
-lcd.print("TEST MODE");
-for (pos = 0; pos <= 180; pos += 1) { 
- myservo.write(pos);           
-    lcd.setCursor(7,1);
- lcd.print(pos);
-    delay(10);  
-  for (pos = 180; pos >= 0; pos -= 1) { 
-    myservo.write(pos);
-     lcd.setCursor(7,1);
- lcd.print(pos);             
-    delay(10);                       
+}
+void motorright()
+{
+  lcd.setCursor(6,1);
+  lcd.print("| MOTOR ON");
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  digitalWrite(ledyellow, HIGH);
+}
+void motorleft()
+{
+  lcd.setCursor(6,1);
+  lcd.print("| MOTOR ON");
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+  digitalWrite(ledyellow, HIGH);
+}
+void motoroff()
+{
+  lcd.setCursor(6,1);
+  lcd.print("| MOTOR OF");
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+  digitalWrite(ledyellow, LOW);
+}
+void hujan() 
+{
+  lcd.setCursor(0,0);
+	lcd.print("AUTO CLOTHESLINE ");
+  lcd.setCursor(0,1);
+	lcd.print("HUJAN");
+  digitalWrite(ledred, HIGH);
+  digitalWrite(ledgreen, LOW);
+  irstatus1 = digitalRead(irsensor1);
+  irstatus2 = digitalRead(irsensor2);
+  if (irstatus2 == 0) 
+  {
+   motorleft();
   }
-  
+  else if (irstatus1 == 0)
+  {
+    motoroff();
   }
 }
-else {
-  irbatas = digitalRead(ir);
-  tingkathujan = digitalRead(rainPin);
-if(tingkathujan == HIGH){
-lcd.setCursor(6,1);
-lcd.print("HUJAN");  
-delay(500);
-lcd.clear();
-lcd.setCursor(3,0);
-lcd.print("PERINGATAN");
-delay(500);
-lcd.clear();
-digitalWrite(6, HIGH);
- digitalWrite(9, LOW);
- if (irbatas == LOW){
-myservo.write(-360); 
- }
-
+void cerah()
+{
+  lcd.setCursor(0,0);
+	lcd.print("AUTO CLOTHESLINE ");
+  lcd.setCursor(0,1);
+	lcd.print("CERAH");
+  digitalWrite(ledred, LOW);
+  digitalWrite(ledgreen, HIGH);
+  irstatus2 = digitalRead(irsensor2);
+  irstatus1 = digitalRead(irsensor1);
+  if(irstatus1 == 0) 
+  {
+      motorright();
+  }
+  else if (irstatus2 == 0)
+  {
+    motoroff();
+  }
 }
-else{
-lcd.setCursor(3,0);
-  lcd.print("Rain Sensor");
-lcd.setCursor(6,1);
-lcd.print("CERAH");
-myservo.write(360); 
-digitalWrite(6, LOW);
-digitalWrite(9, HIGH);
-
-
+void loop()
+{
+      statuscuaca = digitalRead(rainsensor);
+      if (statuscuaca == 0) 
+      {
+        hujan();
+      }
+     else if (statuscuaca == 1)
+     {
+    cerah();
+     }
 }
-}
-}
-
-
